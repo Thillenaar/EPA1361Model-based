@@ -1,3 +1,4 @@
+import pandas as pd
 from ema_workbench import Model, MultiprocessingEvaluator, Policy, Scenario
 
 from ema_workbench.em_framework.evaluators import perform_experiments
@@ -60,6 +61,13 @@ if __name__ == "__main__":
 
     # series run
     experiments, outcomes = perform_experiments(dike_model, ref_scenario, 5)
+
+    # export
+    experiments.to_csv('data/experiments/experiments.csv')
+    for exp in range(len(experiments)):
+        outcome = dict(map(lambda x: (x[0], x[1][exp]), outcomes.items()))
+        pd.DataFrame(outcome).to_csv('data/experiments/outcome_{}.csv'.format(exp))
+
 
 # multiprocessing
 #    with MultiprocessingEvaluator(dike_model) as evaluator:
