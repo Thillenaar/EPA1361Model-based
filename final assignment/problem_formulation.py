@@ -272,14 +272,32 @@ def get_model_for_problem_formulation(problem_formulation_id):
         outcomes = []
 
         for dike in function.dikelist:
-            cost_variables = []
-            for e in ["Expected Annual Damage", "Dike Investment Costs"]:
-                cost_variables.append(f"{dike}_{e}")
+            # cost_variables = []
+            # for e in ["Expected Annual Damage", "Dike Investment Costs"]:
+            #     cost_variables.append(f"{dike}_{e}")
+            #
+            # outcomes.append(
+            #     ScalarOutcome(
+            #         f"{dike} Total Costs",
+            #         variable_name=[var for var in cost_variables],
+            #         function=sum_over,
+            #         kind=direction,
+            #     )
+            # )
 
             outcomes.append(
                 ScalarOutcome(
-                    f"{dike} Total Costs",
-                    variable_name=[var for var in cost_variables],
+                    f"{dike} Expected Annual Damage",
+                    variable_name=f"{dike}_Expected Annual Damage",
+                    function=sum_over,
+                    kind=direction,
+                )
+            )
+
+            outcomes.append(
+                ScalarOutcome(
+                    f"{dike} Dike Investment Costs",
+                    variable_name=f"{dike}_Dike Investment Costs",
                     function=sum_over,
                     kind=direction,
                 )

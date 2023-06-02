@@ -8,7 +8,7 @@ from ema_workbench.util import ema_logging
 import time
 from problem_formulation import get_model_for_problem_formulation
 
-PROBLEM = 5
+PROBLEM = 3
 
 if __name__ == "__main__":
     ema_logging.log_to_stderr(ema_logging.INFO)
