@@ -8,7 +8,7 @@ from ema_workbench.util import ema_logging
 import time
 from problem_formulation import get_model_for_problem_formulation
 
-PROBLEM = 3
+PROBLEM = 5
 
 if __name__ == "__main__":
     ema_logging.log_to_stderr(ema_logging.INFO)
@@ -68,9 +68,18 @@ if __name__ == "__main__":
     experiments.to_csv('data/experiments/{}_experiments.csv'.format(PROBLEM))
 
     if PROBLEM > 3:
+        df_list = []
         for exp in range(len(experiments)):
             outcome = dict(map(lambda x: (x[0], x[1][exp]), outcomes.items()))
-            pd.DataFrame(outcome).to_csv('data/experiments/{}_outcome_{}.csv'.format(PROBLEM, exp))
+            df = pd.DataFrame(outcome)
+            df.index.name = 'phase'
+            df.reset_index(inplace=True)
+            df['phase'] += 1
+            df.insert(0, 'experiment', pd.Series([exp] * len(df)))
+            df_list.append(df)
+        packed = pd.concat(df_list)
+        packed.reset_index(inplace=True, drop=True)
+        packed.to_csv(f"data/experiments/{PROBLEM}_outcomes.csv")
     else:
         packed = defaultdict(list)
         for exp in range(len(experiments)):
