@@ -1,4 +1,5 @@
 import pandas as pd
+from collections import defaultdict
 from ema_workbench import Model, MultiprocessingEvaluator, Policy, Scenario
 
 from ema_workbench.em_framework.evaluators import perform_experiments
@@ -7,11 +8,12 @@ from ema_workbench.util import ema_logging
 import time
 from problem_formulation import get_model_for_problem_formulation
 
+PROBLEM = 5
 
 if __name__ == "__main__":
     ema_logging.log_to_stderr(ema_logging.INFO)
 
-    dike_model, planning_steps = get_model_for_problem_formulation(5)
+    dike_model, planning_steps = get_model_for_problem_formulation(PROBLEM)
 
     # Build a user-defined scenario and policy:
     reference_values = {
@@ -63,10 +65,23 @@ if __name__ == "__main__":
     experiments, outcomes = perform_experiments(dike_model, ref_scenario, 5)
 
     # export
-    experiments.to_csv('data/experiments/experiments.csv')
-    for exp in range(len(experiments)):
-        outcome = dict(map(lambda x: (x[0], x[1][exp]), outcomes.items()))
-        pd.DataFrame(outcome).to_csv('data/experiments/outcome_{}.csv'.format(exp))
+    experiments.to_csv('data/experiments/{}_experiments.csv'.format(PROBLEM))
+
+    if PROBLEM > 3:
+        for exp in range(len(experiments)):
+            outcome = dict(map(lambda x: (x[0], x[1][exp]), outcomes.items()))
+            pd.DataFrame(outcome).to_csv('data/experiments/{}_outcome_{}.csv'.format(PROBLEM, exp))
+    else:
+        packed = defaultdict(list)
+        for exp in range(len(experiments)):
+            outcome = dict(map(lambda x: (x[0], x[1][exp]), outcomes.items()))
+            packed['experiment'].append(exp)
+            for key, val in outcome.items():
+                packed[key].append(val)
+
+        df = pd.DataFrame(packed)
+        df.set_index('experiment', drop=True, inplace=True)
+        df.to_csv('data/experiments/{}_outcomes.csv'.format(PROBLEM))
 
 
 # multiprocessing
