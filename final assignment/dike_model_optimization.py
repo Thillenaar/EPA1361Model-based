@@ -5,6 +5,7 @@ from ema_workbench import (
     IntegerParameter,
     optimize,
     Scenario,
+    SequentialEvaluator
 )
 from ema_workbench.em_framework.optimization import EpsilonProgress
 from ema_workbench.util import ema_logging
@@ -17,7 +18,7 @@ import seaborn as sns
 if __name__ == "__main__":
     ema_logging.log_to_stderr(ema_logging.INFO)
 
-    model, steps = get_model_for_problem_formulation(2)
+    model, steps = get_model_for_problem_formulation(3)
 
     reference_values = {
         "Bmax": 175,
@@ -42,10 +43,13 @@ if __name__ == "__main__":
     ref_scenario = Scenario("reference", **scen1)
 
     convergence_metrics = [EpsilonProgress()]
+    #print(len(model.outcomes))
+    # for i in model.outcomes:
+    #     print(i)
+    espilon = [10000] * len(model.outcomes)
+    #espilon = [1e3] * len(model.outcomes) #originele setting
 
-    espilon = [1e3] * len(model.outcomes)
-
-    nfe = 200  # proof of principle only, way to low for actual use
+    nfe = 5000  # 200 #proof of principle only, way to low for actual use
 
     with MultiprocessingEvaluator(model) as evaluator:
         results, convergence = evaluator.optimize(
@@ -56,9 +60,21 @@ if __name__ == "__main__":
             reference=ref_scenario,
         )
 
+    #Zelf toegevoegd op basis van code uitleg MOEA.
+    from ema_workbench.analysis import parcoords
+    outcomes = results.loc[:, ['A.1 Expected Annual Damage', 'A.1_Expected Number of Deaths', 'A.2 Expected Annual Damage', 'A.2_Expected Number of Deaths', 'A.3 Expected Annual Damage', 'A.3_Expected Number of Deaths', 'A.4 Expected Annual Damage', 'A.4_Expected Number of Deaths', 'A.5 Expected Annual Damage', 'A.5_Expected Number of Deaths', 'RfR Total Costs', 'Expected Evacuation Costs', 'A.1 Dike Investment Costs', 'A.2 Dike Investment Costs', 'A.3 Dike Investment Costs', 'A.4 Dike Investment Costs', 'A.5 Dike Investment Costs']]
+    limits = parcoords.get_limits(outcomes)
+    axes = parcoords.ParallelAxes(limits)
+    axes.plot(outcomes)
+    plt.show()
+
     fig, (ax1, ax2) = plt.subplots(ncols=2, sharex=True)
     fig, ax1 = plt.subplots(ncols=1)
     ax1.plot(convergence.epsilon_progress)
     ax1.set_xlabel("nr. of generations")
+    #hoe kan dit niet in duizendtallen zijn?
     ax1.set_ylabel(r"$\epsilon$ progress")
     sns.despine()
+    #op plot 2 kan hypervolume nog bij als assessing convergence tool
+    #dan moeten ook bij de outcomes expected ranges worden aangegeven.
+    plt.show()
