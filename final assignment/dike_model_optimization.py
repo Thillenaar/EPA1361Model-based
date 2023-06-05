@@ -46,10 +46,10 @@ if __name__ == "__main__":
     #print(len(model.outcomes))
     # for i in model.outcomes:
     #     print(i)
-    espilon = [10000] * len(model.outcomes)
+    espilon = [100000000] * len(model.outcomes)
     #espilon = [1e3] * len(model.outcomes) #originele setting
 
-    nfe = 5000  # 200 #proof of principle only, way to low for actual use
+    nfe = 10000  # 200 #proof of principle only, way to low for actual use
 
     with MultiprocessingEvaluator(model) as evaluator:
         results, convergence = evaluator.optimize(
