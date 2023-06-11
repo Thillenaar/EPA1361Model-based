@@ -8,7 +8,11 @@ from ema_workbench.util import ema_logging
 import time
 from problem_formulation import get_model_for_problem_formulation
 
+# pick definition 1 - 4
 PROBLEM = 3
+# pick config from ['ref', 'subspace']
+CONFIG = 'ref'
+# outcomes will be saved with _CONFIG_PROBLEM appended to file name
 
 if __name__ == "__main__":
     ema_logging.log_to_stderr(ema_logging.INFO)
@@ -62,10 +66,12 @@ if __name__ == "__main__":
     #    results = dike_model.outcomes_output
 
     # series run
-    experiments, outcomes = perform_experiments(dike_model, ref_scenario, 5)
+    config_options = {'ref': {'models': dike_model, 'scenarios': ref_scenario, 'policies': 5},
+                       'subspace': {'models': dike_model, 'scenarios': 1000, 'policies': policy0}}
+    experiments, outcomes = perform_experiments(**config_options[CONFIG])
 
     # export
-    experiments.to_csv('data/experiments/{}_experiments.csv'.format(PROBLEM))
+    experiments.to_csv(f'data/experiments/experiments_{CONFIG}_{PROBLEM}.csv')
 
     if PROBLEM > 3:
         df_list = []
@@ -79,7 +85,7 @@ if __name__ == "__main__":
             df_list.append(df)
         packed = pd.concat(df_list)
         packed.reset_index(inplace=True, drop=True)
-        packed.to_csv(f"data/experiments/{PROBLEM}_outcomes.csv")
+        packed.to_csv(f"data/experiments/outcomes_{CONFIG}_{PROBLEM}.csv")
     else:
         packed = defaultdict(list)
         for exp in range(len(experiments)):
@@ -90,7 +96,7 @@ if __name__ == "__main__":
 
         df = pd.DataFrame(packed)
         df.set_index('experiment', drop=True, inplace=True)
-        df.to_csv('data/experiments/{}_outcomes.csv'.format(PROBLEM))
+        df.to_csv(f'data/experiments/outcomes_{CONFIG}_{PROBLEM}.csv')
 
 
 # multiprocessing
