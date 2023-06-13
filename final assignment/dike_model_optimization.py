@@ -47,10 +47,10 @@ if __name__ == "__main__":
     #print(len(model.outcomes))
     # for i in model.outcomes:
     #     print(i)
-    espilon = [10000000] * len(model.outcomes)
+    espilon = [100000] * len(model.outcomes)
     #espilon = [1e3] * len(model.outcomes) #originele setting
 
-    nfe = 10000  # 200 #proof of principle only, way to low for actual use
+    nfe = 10  # 200 #proof of principle only, way to low for actual use
 
     with MultiprocessingEvaluator(model) as evaluator:
         results, convergence = evaluator.optimize(
@@ -59,8 +59,8 @@ if __name__ == "__main__":
             epsilons=espilon,
             convergence=convergence_metrics,
             reference=ref_scenario,
-            #constraints=[Constraint("RfR Total Costs", outcome_names="RfR Total Costs",
-                        #  function=lambda x:max(0, x - 10000000))],
+            constraints=[Constraint("A.1 Expected Annual Damage", outcome_names="A.1 Expected Annual Damage", function=lambda x:max(0, x - 500000)),
+                         Constraint("A.2 Expected Annual Damage", outcome_names="A.2 Expected Annual Damage", function=lambda x:max(0, x - 500000))],
         )
 
     pd.set_option("display.max_columns", None)
