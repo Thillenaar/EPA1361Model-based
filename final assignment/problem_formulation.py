@@ -272,8 +272,8 @@ def get_model_for_problem_formulation(problem_formulation_id):
         outcomes = []
 
         for dike in function.dikelist:
-            if dike != 'A.1' and dike != 'A.2':
-                continue
+            # if dike != 'A.1' and dike != 'A.2':
+            #     continue
             # cost_variables = []
             # for e in ["Expected Annual Damage", "Dike Investment Costs"]:
             #     cost_variables.append(f"{dike}_{e}")

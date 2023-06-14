@@ -12,7 +12,7 @@ from problem_formulation import get_model_for_problem_formulation
 PROBLEM = 3
 # pick config from ['ref', 'subspace']
 CONFIG = 'ref'
-# outcomes will be saved with _CONFIG_PROBLEM appended to file name
+# outcomes will be saved with _{CONFIG}_{PROBLEM} appended to file name
 
 if __name__ == "__main__":
     ema_logging.log_to_stderr(ema_logging.INFO)
@@ -40,6 +40,7 @@ if __name__ == "__main__":
             scen1.update({key.name: reference_values[name_split[1]]})
 
     ref_scenario = Scenario("reference", **scen1)
+    print(scen1)
 
     # no dike increase, no warning, none of the rfr
     zero_policy = {"DaysToThreat": 0}
@@ -67,7 +68,7 @@ if __name__ == "__main__":
 
     # series run
     config_options = {'ref': {'models': dike_model, 'scenarios': ref_scenario, 'policies': 5},
-                       'subspace': {'models': dike_model, 'scenarios': 1000, 'policies': policy0}}
+                      'subspace': {'models': dike_model, 'scenarios': 10000, 'policies': policy0}}
     experiments, outcomes = perform_experiments(**config_options[CONFIG])
 
     # export
