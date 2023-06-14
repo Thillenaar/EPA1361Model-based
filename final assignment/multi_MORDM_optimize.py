@@ -88,7 +88,7 @@ if __name__ == "__main__":
     model, steps = get_model_for_problem_formulation(3)
 
     df_scenario_discover = pd.read_excel(r'data/scenario_discovery/scenario.xlsx')
-    print(df_scenario_discover)
+    #print(df_scenario_discover)
     scenarios = []
     for index, row in df_scenario_discover.iterrows():
 
@@ -117,7 +117,7 @@ if __name__ == "__main__":
         ref_scenario = Scenario(index, **scen1)
         scenarios.append(ref_scenario)
 
-    print(scenarios)
+    #print(scenarios)
     convergence_metrics = [EpsilonProgress()]
     # print(len(model.outcomes))
     # for i in model.outcomes:

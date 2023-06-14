@@ -1,6 +1,7 @@
 import os
 import pandas as pd
-
+import numpy as np
+from ema_workbench import Policy
 from problem_formulation import get_model_for_problem_formulation
 from ema_workbench.em_framework.optimization import (ArchiveLogger, EpsilonProgress,
                                                         to_problem, epsilon_nondominated,
@@ -12,6 +13,7 @@ from platypus import Hypervolume
 import matplotlib as mpl
 import matplotlib.pyplot as plt
 import seaborn as sns
+import matplotlib.patches as mpatches
 
 
 # Function to read all available files in a list
@@ -101,7 +103,7 @@ if __name__ == "__main__":
     model, steps = get_model_for_problem_formulation(3)
     # determine scenarios of model
     df_scenario_discover = pd.read_excel(r'data/scenario_discovery/scenario.xlsx')
-    print(df_scenario_discover)
+    #print(df_scenario_discover)
     scenarios = []
     for index, row in df_scenario_discover.iterrows():
 
@@ -133,18 +135,24 @@ if __name__ == "__main__":
     problem = to_problem(model, searchover="levers")
     # create epsilons
     # check consistency of epsilons in all multi_MORDM_.py scripts!!!
-    epsilons = [0.05, ] * len(model.outcomes)
+    epsilons = [10000 ] * len(model.outcomes)
 
     # retrieve results from multi_MORDM_optimize.py (in folder: optimize_results)
     results_per_scenario, convergences_per_scenario, number_of_scenarios = retrieve_results(r"data/optimize_results")
-
+    #print(results_per_scenario)
+   # print(number_of_scenarios)
     # search for nondominance in results per scenario
     dominant_results = []
     for i in range(number_of_scenarios):
+        print('results per scenario i')
+        print(results_per_scenario[i])
         reference_set = sort_non_dominance(results_per_scenario[i], epsilons, problem)
-
+        print('reference set')
+        print(reference_set)
         # save dominant results (with nondominant convergence???)
         dominant_results.append((reference_set, convergences_per_scenario[i]))
+        print('dominant results')
+        print(dominant_results)
 
     # calculate convergence
     convergence_calculations = []
@@ -182,3 +190,93 @@ if __name__ == "__main__":
 
     plt.show()
 
+    #print('domin')
+    #print(dominant_results[0][0].columns)
+    #print(dominant_results)
+
+    policies = []
+    # print('results')
+    # print(results)
+    for i, (result, _) in enumerate(dominant_results):
+        result = result.iloc[:, 0:31]
+        # print('result')
+        # print(result)
+        for j, row in result.iterrows():
+            policy = Policy(f'scenario {i} option {j}', **row.to_dict())
+            #print('policy')
+            #print(policy)
+            #print('j')
+            #print(j)
+            policies.append(policy)
+    #print('policies')
+    #print(policies)
+    #print(len(policies))
+
+    with MultiprocessingEvaluator(model) as evaluator:
+        reeevaluation_results = evaluator.perform_experiments(10, policies=policies)
+
+    experiments, outcomes = reeevaluation_results
+
+    thresholds = {'A.1 Expected Annual Damage': 100, 'A.1 Dike Investment Costs': 500,
+                  'A.1_Expected Number of Deaths': 10000000000, 'A.2 Expected Annual Damage': 100,
+                  'A.2 Dike Investment Costs': 500, 'A.2_Expected Number of Deaths': 100000000,
+                  'RfR Total Costs': 500000000000, 'Expected Evacuation Costs': 1000000000}
+
+    overall_scores = {}
+    for policy in experiments.policy.unique():
+        logical = experiments.policy == policy
+        scores = {}
+        for k, v in outcomes.items():
+            try:
+                n = np.sum(v[logical] >= thresholds[k])
+            except KeyError:
+                continue
+            scores[k] = n / 10 #wij hadden hier nog 1000
+        overall_scores[policy] = scores
+
+    overall_scores = pd.DataFrame(overall_scores).T
+    print('overall_scores')
+    print(overall_scores)
+
+    # plot lines and determine legend
+
+
+    # legend_handles = []
+
+
+    # hsv = plt.get_cmap('hsv')
+    # colors = hsv(np.linspace(0, 1.0, len(outcomes)))
+    #
+    # limits = parcoords.get_limits(outcomes)
+    # axes = parcoords.ParallelAxes(limits)
+    #
+    # for i, (index, row) in enumerate(outcomes.iterrows()):
+    #     label = f"Policy {str(index)}"
+    #     clr = colors[i]
+    #
+    #     axes.plot(row.to_frame().T, color=clr, label=label)
+    #
+    #     patch = mpatches.Patch(color=clr, label=label)
+    #     legend_handles.append(patch)
+    #
+    # plt.legend(handles=legend_handles)
+    # plt.show()
+
+    pd.set_option("display.max_columns", None)
+    limits = parcoords.get_limits(overall_scores)
+    print('limits')
+    print(limits)
+    paraxes = parcoords.ParallelAxes(limits)
+    paraxes.plot(overall_scores)
+    plt.show()
+
+    #Kolomnamen die uit reference set komen hebben weer spatie trouwens --> veroorzaakt geen problemen.
+
+    #Kijk naar het stukje code hierboven, vanaf lijn 225, waar we het domain criteria toepassen.
+    #Let heel goed op. Uitkomsten, plots kloppen wel. Ligt aan de scores, die zijn genormaliseerd (tussen 0 en 1).
+    #Je moet dan ook niet delen door 1000, maar door 10, als je maar 10 scenarios gebruikt.
+    ##We kunnen die >= vervangen door <= als dat duidelijker is! Bij Kwakkel ging het om maximizen,
+    #bij ons om minimizen.
+    # Die code, en dus plot, geeft aan in hoeveel procent van de gevallen je threshold is overschreden
+    # in dit geval door je policy over de verschillende scenarios. Wij kunnen daar ook percentage niet over
+    # schreden van maken.
