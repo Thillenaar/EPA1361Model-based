@@ -201,9 +201,9 @@ if __name__ == "__main__":
 
     experiments, outcomes = reevaluation_results
 
-    thresholds = {'A.1_Expected_Annual_Damage': 100, 'A.1_Dike_Investment_Costs': 500,
-                  'A.1_Expected_Number_of_Deaths': 10000000000, 'A.2_Expected_Annual_Damage': 100,
-                  'A.2_Dike Investment Costs': 500, 'A.2_Expected_Number_of_Deaths': 100000000,
+    thresholds = {'A1_Expected_Annual_Damage': 100, 'A1_Dike_Investment_Costs': 500,
+                  'A1_Expected_Number_of_Deaths': 10000000000, 'A2_Expected_Annual_Damage': 100,
+                  'A2_Dike_Investment_Costs': 500, 'A2_Expected_Number_of_Deaths': 100000000,
                   'RfR_Total_Costs': 500000000000, 'Expected_Evacuation_Costs': 1000000000}
 
     overall_scores = {}
