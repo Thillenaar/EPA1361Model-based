@@ -2,7 +2,7 @@ import os
 import pandas as pd
 import numpy as np
 from ema_workbench import Policy
-from problem_formulation import get_model_for_problem_formulation
+from our_problem_formulation import get_model_for_problem_formulation
 from ema_workbench.em_framework.optimization import (ArchiveLogger, EpsilonProgress,
                                                         to_problem, epsilon_nondominated,
                                                         rebuild_platypus_population)
@@ -14,6 +14,34 @@ import matplotlib as mpl
 import matplotlib.pyplot as plt
 import seaborn as sns
 import matplotlib.patches as mpatches
+
+
+# Function to create a list of scenarios from the scenario discovery selection
+def create_scenarios(df_scenario_discovery):
+    scenarios = []
+    for index, row in df_scenario_discovery.iterrows():
+
+        reference_values = {}
+
+        for i in range(1, 6, 1):
+            reference_values[f"A.{i}_Bmax"] = df_scenario_discovery[f"A.{i}_Bmax"][index]
+            reference_values[f"A.{i}_Brate"] = df_scenario_discovery[f"A.{i}_Brate"][index]
+            reference_values[f"A.{i}_pfail"] = df_scenario_discovery[f"A.{i}_pfail"][index]
+
+        reference_values["discount rate 0"] = df_scenario_discovery["discount rate 0"][index]
+        reference_values["discount rate 1"] = df_scenario_discovery["discount rate 1"][index]
+        reference_values["discount rate 2"] = df_scenario_discovery["discount rate 2"][index]
+        reference_values["A.0_ID flood wave shape"] = df_scenario_discovery["A.0_ID flood wave shape"][index]
+
+        scen1 = {}
+
+        for key in model.uncertainties:
+            scen1.update({key.name: reference_values[key.name]})
+
+        ref_scenario = Scenario(index, **scen1)
+        scenarios.append(ref_scenario)
+
+    return scenarios
 
 
 # Function to read all available files in a list
@@ -34,12 +62,12 @@ def retrieve_results(folder_path):
     for file in get_files(folder_path):
         # process results
         if "results" in file:
-            df_result = pd.read_excel(folder_path + "/" + file)
+            df_result = pd.read_csv(folder_path + "/" + file)
             results.append(df_result)
 
-        # process convergence
+        # process convergences
         elif "convergence" in file:
-            df_convergence = pd.read_excel(folder_path + "/" + file)
+            df_convergence = pd.read_csv(folder_path + "/" + file)
             convergences.append(df_convergence)
 
         # get processed scenario name
@@ -48,7 +76,7 @@ def retrieve_results(folder_path):
         # save scenario name
         scenarios.append(scenario_name)
 
-        # get seed (and remove excel extension)
+        # get seed (and remove ".csv" extension with .split())
         this_seed = strings[4].split(".")[0]
 
 
@@ -82,6 +110,7 @@ def sort_non_dominance(results, epsilons, problem):
 
     return reference_set
 
+
 # Function to calculate convergence_metrics
 def calculate_convergence_metrics(problem, archives_file):
     hv = Hypervolume(minimum=[0, ] * len(model.outcomes), maximum=[12, ] * len(model.outcomes))
@@ -100,59 +129,25 @@ def calculate_convergence_metrics(problem, archives_file):
 if __name__ == "__main__":
 
     # get model reference
-    model, steps = get_model_for_problem_formulation(3)
-    # determine scenarios of model
-    df_scenario_discover = pd.read_excel(r'data/scenario_discovery/scenario.xlsx')
-    #print(df_scenario_discover)
-    scenarios = []
-    for index, row in df_scenario_discover.iterrows():
-
-        reference_values = {
-            "Bmax": df_scenario_discover["Bmax"][index],
-            "Brate": df_scenario_discover["Brate"][index],
-            "pfail": df_scenario_discover["pfail"][index],
-            "discount rate 0": df_scenario_discover["discount rate 0"][index],
-            "discount rate 1": df_scenario_discover["discount rate 1"][index],
-            "discount rate 2": df_scenario_discover["discount rate 2"][index],
-            "ID flood wave shape": df_scenario_discover["ID flood wave shape"][index],
-        }
-
-        scen1 = {}
-
-        for key in model.uncertainties:
-            name_split = key.name.split("_")
-
-            if len(name_split) == 1:
-                scen1.update({key.name: reference_values[key.name]})
-
-            else:
-                scen1.update({key.name: reference_values[name_split[1]]})
-
-        ref_scenario = Scenario(index, **scen1)
-        scenarios.append(ref_scenario)
-
+    model, steps = get_model_for_problem_formulation()
+    # get scenarios from scenario discovery
+    df_scenario_discovery = pd.read_csv(r'data/scenario_discovery/reference_scenarios.csv')
+    # create list of scenario objects
+    scenarios = create_scenarios(df_scenario_discovery)
     # create problem object
     problem = to_problem(model, searchover="levers")
-    # create epsilons
-    # check consistency of epsilons in all multi_MORDM_.py scripts!!!
-    epsilons = [10000 ] * len(model.outcomes)
+    # create epsilons (check consistency of epsilons in all multi_MORDM_.py scripts!!!)
+    epsilons = [10000] * len(model.outcomes)
 
     # retrieve results from multi_MORDM_optimize.py (in folder: optimize_results)
     results_per_scenario, convergences_per_scenario, number_of_scenarios = retrieve_results(r"data/optimize_results")
-    #print(results_per_scenario)
-   # print(number_of_scenarios)
-    # search for nondominance in results per scenario
+
+    # search for non dominance in results per scenario
     dominant_results = []
     for i in range(number_of_scenarios):
-        print('results per scenario i')
-        print(results_per_scenario[i])
         reference_set = sort_non_dominance(results_per_scenario[i], epsilons, problem)
-        print('reference set')
-        print(reference_set)
-        # save dominant results (with nondominant convergence???)
+        # save dominant results and store convergences of previous optimized results
         dominant_results.append((reference_set, convergences_per_scenario[i]))
-        print('dominant results')
-        print(dominant_results)
 
     # calculate convergence
     convergence_calculations = []
@@ -187,40 +182,29 @@ if __name__ == "__main__":
     # create our custom legend
     artists, labels = zip(*legend_items)
     fig.legend(artists, labels, bbox_to_anchor=(1, 0.9))
-
     plt.show()
 
-    #print('domin')
-    #print(dominant_results[0][0].columns)
-    #print(dominant_results)
 
     policies = []
-    # print('results')
-    # print(results)
     for i, (result, _) in enumerate(dominant_results):
         result = result.iloc[:, 0:31]
         # print('result')
         # print(result)
         for j, row in result.iterrows():
             policy = Policy(f'scenario {i} option {j}', **row.to_dict())
-            #print('policy')
-            #print(policy)
-            #print('j')
-            #print(j)
             policies.append(policy)
-    #print('policies')
-    #print(policies)
-    #print(len(policies))
 
+    # test policies on new experiments
+    number_of_experiments = 10
     with MultiprocessingEvaluator(model) as evaluator:
-        reeevaluation_results = evaluator.perform_experiments(10, policies=policies)
+        reevaluation_results = evaluator.perform_experiments(number_of_experiments, policies=policies)
 
-    experiments, outcomes = reeevaluation_results
+    experiments, outcomes = reevaluation_results
 
-    thresholds = {'A.1 Expected Annual Damage': 100, 'A.1 Dike Investment Costs': 500,
-                  'A.1_Expected Number of Deaths': 10000000000, 'A.2 Expected Annual Damage': 100,
-                  'A.2 Dike Investment Costs': 500, 'A.2_Expected Number of Deaths': 100000000,
-                  'RfR Total Costs': 500000000000, 'Expected Evacuation Costs': 1000000000}
+    thresholds = {'A.1_Expected_Annual_Damage': 100, 'A.1_Dike_Investment_Costs': 500,
+                  'A.1_Expected_Number_of_Deaths': 10000000000, 'A.2_Expected_Annual_Damage': 100,
+                  'A.2_Dike Investment Costs': 500, 'A.2_Expected_Number_of_Deaths': 100000000,
+                  'RfR_Total_Costs': 500000000000, 'Expected_Evacuation_Costs': 1000000000}
 
     overall_scores = {}
     for policy in experiments.policy.unique():
@@ -231,44 +215,37 @@ if __name__ == "__main__":
                 n = np.sum(v[logical] >= thresholds[k])
             except KeyError:
                 continue
-            scores[k] = n / 10 #wij hadden hier nog 1000
+            scores[k] = n / number_of_experiments
         overall_scores[policy] = scores
 
     overall_scores = pd.DataFrame(overall_scores).T
+    overall_scores.to_excel("data/robustness/overall_scores.xlsx")
     print('overall_scores')
     print(overall_scores)
 
-    # plot lines and determine legend
-
-
-    # legend_handles = []
-
-
-    # hsv = plt.get_cmap('hsv')
-    # colors = hsv(np.linspace(0, 1.0, len(outcomes)))
-    #
-    # limits = parcoords.get_limits(outcomes)
-    # axes = parcoords.ParallelAxes(limits)
-    #
-    # for i, (index, row) in enumerate(outcomes.iterrows()):
-    #     label = f"Policy {str(index)}"
-    #     clr = colors[i]
-    #
-    #     axes.plot(row.to_frame().T, color=clr, label=label)
-    #
-    #     patch = mpatches.Patch(color=clr, label=label)
-    #     legend_handles.append(patch)
-    #
-    # plt.legend(handles=legend_handles)
-    # plt.show()
-
-    pd.set_option("display.max_columns", None)
+    # plot threshold compliance
     limits = parcoords.get_limits(overall_scores)
-    print('limits')
-    print(limits)
-    paraxes = parcoords.ParallelAxes(limits)
-    paraxes.plot(overall_scores)
+    axes = parcoords.ParallelAxes(limits)
+    # setup legend and colors
+    legend_handles = []
+    hsv = plt.get_cmap('hsv')
+    colors = hsv(np.linspace(0, 1.0, len(overall_scores)))
+    # process data and set legend info
+    for i, (index, row) in enumerate(overall_scores.iterrows()):
+        label = f"Policy {str(index)}"
+        clr = colors[i]
+        axes.plot(row.to_frame().T, color=clr, label=label)
+        patch = mpatches.Patch(color=clr, label=label)
+        legend_handles.append(patch)
+    # save figure
+    plt.savefig("data/robustness/threshold_compliance.png")
+    # plot figure
+    plt.legend(handles=legend_handles)
     plt.show()
+
+
+
+### End notes ###
 
     #Kolomnamen die uit reference set komen hebben weer spatie trouwens --> veroorzaakt geen problemen.
 
