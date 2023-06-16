@@ -44,10 +44,15 @@ def create_scenarios(df_scenario_discovery):
     return scenarios
 
 
-def optimize_scenarios(scenario, nfe, model, epsilons):
+def optimize_scenarios(scenario, nfe, model, epsilons, number_of_seeds):
+
+    # save number of seeds per scenario
+    seeds_dict = {"number of seeds": number_of_seeds}
+    df_seeds = pd.DataFrame(seeds_dict, index=[0])
+    df_seeds.to_csv("data/optimize_results/number_of_seeds.csv")
 
     with MultiprocessingEvaluator(model) as evaluator:
-        for i in range(5):
+        for i in range(number_of_seeds):
             convergence_metrics = [
                 ArchiveLogger(
                     "data/archives",
@@ -83,18 +88,41 @@ if __name__ == "__main__":
     scenarios = create_scenarios(df_scenario_discovery)
 
     # specify epsilons
-    epsilons = [50000000] * len(model.outcomes)
+    epsilons = [1000000,  # A1_Expected_Annual_Damage
+                1000000,  # A1_Dike_Investment_Costs
+                1,  # A1_Expected_Number_of_Deaths
+                1000000,  # A2_Expected_Annual_Damage
+                1000000,  # A2_Dike_Investment_Costs
+                1,  # A2_Expected_Number_of_Deaths
+                1000000,  # A3_Expected_Annual_Damage
+                1000000,  # A3_Dike_Investment_Costs
+                1,  # A3_Expected_Number_of_Deaths
+                1000000,  # A4_Expected_Annual_Damage
+                1000000,  # A4_Dike_Investment_Costs
+                1,  # A4_Expected_Number_of_Deaths
+                1000000,  # A5_Expected_Annual_Damage
+                1000000,  # A5_Dike_Investment_Costs
+                1,  # A5_Expected_Number_of_Deaths
+                10000000,  # RfR_Total_Costs
+                10000000,  # Expected_Evacuation_Costs
+                ]
+    # save these epsilons
+    eps_dict = {"epsilons": epsilons}
+    df_eps = pd.DataFrame(eps_dict, index=[*range(17)])
+    df_eps.to_csv("data/optimize_results/epsilons.csv")
 
     # set number of functional evaluations
     # note that 100000 nfe is again rather low to ensure proper convergence
-    nfe = 1000
+    nfe = 10
 
     # search for optimized results per scenario
+    number_of_seeds = 1
     for scenario in scenarios:
-        optimize_scenarios(scenario, nfe, model, epsilons)
+        optimize_scenarios(scenario, nfe, model, epsilons, number_of_seeds)
 
     # end of script
     print("\nMulti-MORDM optimization script is finished.")
+    print("Results are exported to: final assignment/data/optimize_results")
 
 
 

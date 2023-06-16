@@ -56,7 +56,10 @@ def retrieve_results(folder_path):
     results = []
     convergences = []
     scenarios = []
-    number_of_seeds = 0
+
+    # get number of seeds per scenario
+    df_seeds = pd.read_csv("data/optimize_results/number_of_seeds.csv")
+    number_of_seeds = df_seeds["number of seeds"][0]
 
     # loop through all files in optimize_results folder
     for file in get_files(folder_path):
@@ -70,14 +73,16 @@ def retrieve_results(folder_path):
             df_convergence = pd.read_csv(folder_path + "/" + file)
             convergences.append(df_convergence)
 
-        # get processed scenario name
-        strings = file.split("_")
-        scenario_name = strings[2]
-        # save scenario name
-        scenarios.append(scenario_name)
+        # process the file as long as it contains results/convergences
+        if ("results" in file) or ("convergence" in file):
+            # get processed scenario name
+            strings = file.split("_")
+            scenario_name = strings[2]
+            # save scenario name
+            scenarios.append(scenario_name)
 
-        # get seed (and remove ".csv" extension with .split())
-        this_seed = strings[4].split(".")[0]
+            # get seed (and remove ".csv" extension with .split())
+            this_seed = strings[4].split(".")[0]
 
 
     # calculate number of scenarios
@@ -91,7 +96,7 @@ def retrieve_results(folder_path):
     # last index of list
     end = len(results)
     # number of items per split (number of seeds per scenario)
-    step = 5
+    step = number_of_seeds
     # perform list splits
     for i in range(start, end, step):
         x = i
@@ -136,8 +141,10 @@ if __name__ == "__main__":
     scenarios = create_scenarios(df_scenario_discovery)
     # create problem object
     problem = to_problem(model, searchover="levers")
-    # create epsilons (check consistency of epsilons in all multi_MORDM_.py scripts!!!)
-    epsilons = [10000] * len(model.outcomes)
+    # retrieve specified epsilons
+    df_eps = pd.read_csv("data/optimize_results/epsilons.csv")
+    eps_list = df_eps["epsilons"]
+    epsilons = [float(x) for x in eps_list]
 
     # retrieve results from multi_MORDM_optimize.py (in folder: optimize_results)
     results_per_scenario, convergences_per_scenario, number_of_scenarios = retrieve_results(r"data/optimize_results")
@@ -195,116 +202,24 @@ if __name__ == "__main__":
             policies.append(policy)
 
     # test policies on new experiments
-    number_of_scenarios = 10
+    number_of_experiments = 10
     with MultiprocessingEvaluator(model) as evaluator:
         reevaluation_results = evaluator.perform_experiments(number_of_scenarios, policies=policies)
 
     experiments, outcomes = reevaluation_results
 
-    #domain criterion
-    thresholds = {'A1_Expected_Annual_Damage': 100, 'A1_Dike_Investment_Costs': 500,
-                  'A1_Expected_Number_of_Deaths': 10000000000, 'A2_Expected_Annual_Damage': 100,
-                  'A2_Dike_Investment_Costs': 500, 'A2_Expected_Number_of_Deaths': 100000000,
-                  'RfR_Total_Costs': 500000000000, 'Expected_Evacuation_Costs': 1000000000}
+    # save these experiments and outcomes
+    experiments.to_csv("data/robustness_experiments/experiments.csv", index=False)
+    df_outcomes = pd.DataFrame().from_dict(outcomes)
+    df_outcomes.to_csv("data/robustness_experiments/outcomes.csv", index=False)
 
-    overall_scores = {}
-    for policy in experiments.policy.unique():
-        logical = experiments.policy == policy
-        scores = {}
-        for k, v in outcomes.items():
-            try:
-                n = np.sum(v[logical] <= thresholds[k])
-            except KeyError:
-                continue
-            scores[k] = n / number_of_scenarios
-        overall_scores[policy] = scores
-
-    overall_scores = pd.DataFrame(overall_scores).T
-    overall_scores.to_excel("data/robustness/overall_scores.xlsx")
-    #print('overall_scores')
-    #print(overall_scores)
-
-    # plot threshold compliance
-    limits = parcoords.get_limits(overall_scores)
-    axes = parcoords.ParallelAxes(limits)
-    # setup legend and colors
-    legend_handles = []
-    hsv = plt.get_cmap('hsv')
-    colors = hsv(np.linspace(0, 1.0, len(overall_scores)))
-    # process data and set legend info
-    for i, (index, row) in enumerate(overall_scores.iterrows()):
-        label = f"Policy {str(index)}"
-        clr = colors[i]
-        axes.plot(row.to_frame().T, color=clr, label=label)
-        patch = mpatches.Patch(color=clr, label=label)
-        legend_handles.append(patch)
-    # save figure
-    plt.savefig("data/robustness/threshold_compliance.png")
-    # plot figure
-    plt.legend(handles=legend_handles)
-    plt.show()
-
-    #regret criterion
-    # setup a dataframe for the outcomes
-    # we add scenario and policy as additional columns
-    # we need scenario because regret is calculated on a scenario by scenario basis
-    # we add policy because we need to get the maximum regret for each policy.
-    experiments, outcomes = reevaluation_results
-
-    outcomes = pd.DataFrame(outcomes)
-    outcomes['scenario'] = experiments.scenario
-    outcomes['policy'] = experiments.policy
+    # save number of experiments
+    number_dict = {"number of experiments": number_of_experiments}
+    df_number = pd.DataFrame(number_dict, index=[0])
+    df_number.to_csv("data/robustness_experiments/number_of_experiments.csv")
 
 
-    def calculate_regret(x):
-        # policy is non numeric, so min is not defined for this
-        # all the outcomes need to be minimized.
-        best = x.min(numeric_only=True)
 
-        regret = x.loc[:, best.index] - best
-
-        # we add policy back into our regret dataframe
-        # so we know the regret for each policy
-        regret['policy'] = x.policy
-        return regret
-
-
-    # we want to calculate regret on a scenario by scenario basis
-    regret = outcomes.groupby('scenario', group_keys=False).apply(calculate_regret)
-
-    # as last step, we calculate the maximum regret for each policy
-    max_regret = regret.groupby('policy').max()
-
-    # I reorder the columns
-    max_regret = max_regret[['A1_Expected_Annual_Damage', 'A1_Dike_Investment_Costs',
-    'A1_Expected_Number_of_Deaths', 'A2_Expected_Annual_Damage',
-    'A2_Dike_Investment_Costs', 'A2_Expected_Number_of_Deaths',
-    'RfR_Total_Costs', 'Expected_Evacuation_Costs']]
-
-    limits = parcoords.get_limits(max_regret)
-    paraxes = parcoords.ParallelAxes(max_regret)
-    paraxes.plot(max_regret, lw=1, alpha=0.75)
-    # setup legend and colors
-    legend_handles = []
-    color = plt.get_cmap('hsv')
-    colors = color(np.linspace(0, 1.0, len(max_regret)))
-    # process data and set legend info
-    for i, (index, row) in enumerate(max_regret.iterrows()):
-        label = f"Policy {str(index)}"
-        clr = colors[i]
-        paraxes.plot(row.to_frame().T, color=clr, label=label)
-        patch = mpatches.Patch(color=clr, label=label)
-        legend_handles.append(patch)
-    # save figure
-    plt.savefig("data/robustness/min_max_regret.png")
-    # plot figure
-    plt.legend(handles=legend_handles)
-
-    # let's resize the figure
-    fig = plt.gcf()
-    fig.set_size_inches(10, 8)
-
-    plt.show()
 ### End notes ###
 
     #Kolomnamen die uit reference set komen hebben weer spatie trouwens --> veroorzaakt geen problemen.
