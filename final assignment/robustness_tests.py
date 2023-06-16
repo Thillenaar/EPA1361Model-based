@@ -1,8 +1,8 @@
-from multi_MORDM_convergence import reeevaluation_results
+from multi_MORDM_convergence import reevaluation_results
 import numpy as np
 import pandas as pd
 
-experiments, outcomes = reeevaluation_results
+experiments, outcomes = reevaluation_results
 
 thresholds = {'A.1 Expected Annual Damage':1000000000, 'A.1 Dike Investment Costs':500000000,
        'A.1_Expected Number of Deaths':10, 'A.2 Expected Annual Damage':1000000000,

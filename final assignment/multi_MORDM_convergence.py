@@ -195,12 +195,13 @@ if __name__ == "__main__":
             policies.append(policy)
 
     # test policies on new experiments
-    number_of_experiments = 10
+    number_of_scenarios = 10
     with MultiprocessingEvaluator(model) as evaluator:
-        reevaluation_results = evaluator.perform_experiments(number_of_experiments, policies=policies)
+        reevaluation_results = evaluator.perform_experiments(number_of_scenarios, policies=policies)
 
     experiments, outcomes = reevaluation_results
 
+    #domain criterion
     thresholds = {'A1_Expected_Annual_Damage': 100, 'A1_Dike_Investment_Costs': 500,
                   'A1_Expected_Number_of_Deaths': 10000000000, 'A2_Expected_Annual_Damage': 100,
                   'A2_Dike_Investment_Costs': 500, 'A2_Expected_Number_of_Deaths': 100000000,
@@ -212,16 +213,16 @@ if __name__ == "__main__":
         scores = {}
         for k, v in outcomes.items():
             try:
-                n = np.sum(v[logical] >= thresholds[k])
+                n = np.sum(v[logical] <= thresholds[k])
             except KeyError:
                 continue
-            scores[k] = n / number_of_experiments
+            scores[k] = n / number_of_scenarios
         overall_scores[policy] = scores
 
     overall_scores = pd.DataFrame(overall_scores).T
     overall_scores.to_excel("data/robustness/overall_scores.xlsx")
-    print('overall_scores')
-    print(overall_scores)
+    #print('overall_scores')
+    #print(overall_scores)
 
     # plot threshold compliance
     limits = parcoords.get_limits(overall_scores)
@@ -243,8 +244,67 @@ if __name__ == "__main__":
     plt.legend(handles=legend_handles)
     plt.show()
 
+    #regret criterion
+    # setup a dataframe for the outcomes
+    # we add scenario and policy as additional columns
+    # we need scenario because regret is calculated on a scenario by scenario basis
+    # we add policy because we need to get the maximum regret for each policy.
+    experiments, outcomes = reevaluation_results
+
+    outcomes = pd.DataFrame(outcomes)
+    outcomes['scenario'] = experiments.scenario
+    outcomes['policy'] = experiments.policy
 
 
+    def calculate_regret(x):
+        # policy is non numeric, so min is not defined for this
+        # all the outcomes need to be minimized.
+        best = x.min(numeric_only=True)
+
+        regret = x.loc[:, best.index] - best
+
+        # we add policy back into our regret dataframe
+        # so we know the regret for each policy
+        regret['policy'] = x.policy
+        return regret
+
+
+    # we want to calculate regret on a scenario by scenario basis
+    regret = outcomes.groupby('scenario', group_keys=False).apply(calculate_regret)
+
+    # as last step, we calculate the maximum regret for each policy
+    max_regret = regret.groupby('policy').max()
+
+    # I reorder the columns
+    max_regret = max_regret[['A1_Expected_Annual_Damage', 'A1_Dike_Investment_Costs',
+    'A1_Expected_Number_of_Deaths', 'A2_Expected_Annual_Damage',
+    'A2_Dike_Investment_Costs', 'A2_Expected_Number_of_Deaths',
+    'RfR_Total_Costs', 'Expected_Evacuation_Costs']]
+
+    limits = parcoords.get_limits(max_regret)
+    paraxes = parcoords.ParallelAxes(max_regret)
+    paraxes.plot(max_regret, lw=1, alpha=0.75)
+    # setup legend and colors
+    legend_handles = []
+    color = plt.get_cmap('hsv')
+    colors = color(np.linspace(0, 1.0, len(max_regret)))
+    # process data and set legend info
+    for i, (index, row) in enumerate(max_regret.iterrows()):
+        label = f"Policy {str(index)}"
+        clr = colors[i]
+        paraxes.plot(row.to_frame().T, color=clr, label=label)
+        patch = mpatches.Patch(color=clr, label=label)
+        legend_handles.append(patch)
+    # save figure
+    plt.savefig("data/robustness/min_max_regret.png")
+    # plot figure
+    plt.legend(handles=legend_handles)
+
+    # let's resize the figure
+    fig = plt.gcf()
+    fig.set_size_inches(10, 8)
+
+    plt.show()
 ### End notes ###
 
     #Kolomnamen die uit reference set komen hebben weer spatie trouwens --> veroorzaakt geen problemen.

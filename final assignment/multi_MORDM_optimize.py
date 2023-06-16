@@ -87,7 +87,7 @@ if __name__ == "__main__":
 
     # set number of functional evaluations
     # note that 100000 nfe is again rather low to ensure proper convergence
-    nfe = 30000
+    nfe = 1000
 
     # search for optimized results per scenario
     for scenario in scenarios:
