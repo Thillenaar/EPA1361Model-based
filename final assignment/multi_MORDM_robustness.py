@@ -46,7 +46,7 @@ if __name__ == "__main__":
                    'A4_Dike_Investment_Costs': 5000000, 'A4_Expected_Number_of_Deaths': 1,
                    'A5_Expected_Annual_Damage': 1000000,
                    'A5_Dike_Investment_Costs': 5000000, 'A5_Expected_Number_of_Deaths': 1,
-                  'RfR_Total_Costs': 200000000, 'Expected_Evacuation_Costs': 1000000}
+                   'RfR_Total_Costs': 200000000, 'Expected_Evacuation_Costs': 1000000}
 
     # compare experiment results to thresholds
     experiments = df_experiments
@@ -56,7 +56,7 @@ if __name__ == "__main__":
         scores = {}
         for k, v in outcomes.items():
             try:
-                n = np.sum(v[logical] >= thresholds[k])
+                n = np.sum(v[logical] <= thresholds[k])
             except KeyError:
                 continue
             scores[k] = n / number_of_experiments
@@ -93,12 +93,12 @@ if __name__ == "__main__":
     # save figure
     plt.savefig("data/robustness_results/threshold_compliance.png")
     # plot figure
-    plt.show()
+    #plt.show()
 
     # save figure of legend
     plt.legend(handles=legend_handles, loc='center')
     plt.savefig("data/robustness_results/domain_legend.png")
-
+    plt.show()
 
     ### Regret criterion ###
     # setup a dataframe for the outcomes
@@ -147,10 +147,16 @@ if __name__ == "__main__":
     # save figure
     plt.savefig("data/robustness_results/min_max_regret.png")
     # plot figure
-    plt.show()
+    #plt.show()
 
     # save figure of legend
     plt.legend(handles=legend_handles, loc='center')
     plt.savefig("data/robustness_results/regret_legend.png")
+
+    # let's resize the figure
+    fig = plt.gcf()
+    fig.set_size_inches(10, 8)
+
+    plt.show()
 
 
