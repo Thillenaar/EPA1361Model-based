@@ -121,13 +121,12 @@ if __name__ == "__main__":
     max_regret = max_regret[['A1_Expected_Annual_Damage', 'A1_Dike_Investment_Costs',
                              'A1_Expected_Number_of_Deaths', 'A2_Expected_Annual_Damage',
                              'A2_Dike_Investment_Costs', 'A2_Expected_Number_of_Deaths',
-                             'A3_Expected_Annual_Damage', 'A3_Dike_Investment_Costs',
-                             'A3_Expected_Number_of_Deaths',
-                             'A4_Expected_Annual_Damage', 'A4_Dike_Investment_Costs',
-                             'A4_Expected_Number_of_Deaths',
-                             'A5_Expected_Annual_Damage', 'A5_Dike_Investment_Costs',
-                             'A5_Expected_Number_of_Deaths',
-                             'RfR_Total_Costs', 'Expected_Evacuation_Costs']]
+                             'A3_Expected_Annual_Damage', 'A3_Dike_Investment_Costs']]#,
+                             #'A3_Expected_Number_of_Deaths', 'A4_Expected_Annual_Damage',
+                             # 'A4_Dike_Investment_Costs', 'A4_Expected_Number_of_Deaths',
+                             # 'A5_Expected_Annual_Damage', 'A5_Dike_Investment_Costs',
+                             # 'A5_Expected_Number_of_Deaths', 'RfR_Total_Costs',
+                             # 'Expected_Evacuation_Costs']]
 
     limits = parcoords.get_limits(max_regret)
     paraxes = parcoords.ParallelAxes(max_regret)
@@ -155,7 +154,7 @@ if __name__ == "__main__":
 
     # let's resize the figure
     fig = plt.gcf()
-    fig.set_size_inches(10, 8)
+    fig.set_size_inches(12, 6)
 
     plt.show()
 
