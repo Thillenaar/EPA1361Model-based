@@ -1,19 +1,15 @@
 import os
 import pandas as pd
-import numpy as np
 from ema_workbench import Policy
 from our_problem_formulation import get_model_for_problem_formulation
 from ema_workbench.em_framework.optimization import (ArchiveLogger, EpsilonProgress,
                                                         to_problem, epsilon_nondominated,
                                                         rebuild_platypus_population)
-from ema_workbench import (Model, MultiprocessingEvaluator, ScalarOutcome, IntegerParameter,
-                            optimize, Scenario, SequentialEvaluator)
-from ema_workbench.analysis import parcoords
+from ema_workbench import (MultiprocessingEvaluator, Scenario, SequentialEvaluator)
 from platypus import Hypervolume
 import matplotlib as mpl
 import matplotlib.pyplot as plt
 import seaborn as sns
-import matplotlib.patches as mpatches
 
 
 # Function to create a list of scenarios from the scenario discovery selection
@@ -169,7 +165,8 @@ if __name__ == "__main__":
             convergence_calculations.append(metrics)
     convergence = pd.concat(convergence_calculations, ignore_index=True)
 
-    fig, (ax1, ax2) = plt.subplots(ncols=2)
+    # fig, (ax1, ax2) = plt.subplots(ncols=2)
+    fig, ax2 = plt.subplots(ncols=1)
 
     colors = sns.color_palette()
 
@@ -178,17 +175,20 @@ if __name__ == "__main__":
         # we use this for a custom legend
         legend_items.append((mpl.lines.Line2D([0, 0], [1, 1], c=color), scenario_name))
         for seed, score in scores.groupby("seed"):
-            ax1.plot(score.nfe, score.hypervolume, c=color, lw=1)
+            # ax1.plot(score.nfe, score.hypervolume, c=color, lw=1)
             ax2.plot(score.nfe, score.epsilon_progress, c=color, lw=1)
 
-    ax1.set_ylabel('hypervolume')
-    ax1.set_xlabel('nfe')
+    # ax1.set_ylabel('hypervolume')
+    # ax1.set_xlabel('nfe')
     ax2.set_ylabel('$\epsilon$ progress')
     ax2.set_xlabel('nfe')
 
     # create our custom legend
     artists, labels = zip(*legend_items)
     fig.legend(artists, labels, bbox_to_anchor=(1, 0.9))
+    # save figure
+    plt.savefig("data/robustness_experiments/convergence_figure.png")
+    # show figure
     plt.show()
 
 
@@ -201,8 +201,8 @@ if __name__ == "__main__":
             policy = Policy(f'scenario {i} option {j}', **row.to_dict())
             policies.append(policy)
 
-    # test policies on new experiments
-    number_of_experiments = 10
+    # test policies on new scenarios
+    number_of_experiments = 1000
     with MultiprocessingEvaluator(model) as evaluator:
         reevaluation_results = evaluator.perform_experiments(number_of_scenarios, policies=policies)
 

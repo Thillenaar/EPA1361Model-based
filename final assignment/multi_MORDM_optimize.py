@@ -88,24 +88,25 @@ if __name__ == "__main__":
     scenarios = create_scenarios(df_scenario_discovery)
 
     # specify epsilons
-    epsilons = [1000000,  # A1_Expected_Annual_Damage
-                1000000,  # A1_Dike_Investment_Costs
+    epsilons = [50000000,  # A1_Expected_Annual_Damage
+                50000000,  # A1_Dike_Investment_Costs
                 1,  # A1_Expected_Number_of_Deaths
-                1000000,  # A2_Expected_Annual_Damage
-                1000000,  # A2_Dike_Investment_Costs
+                50000000,  # A2_Expected_Annual_Damage
+                50000000,  # A2_Dike_Investment_Costs
                 1,  # A2_Expected_Number_of_Deaths
-                1000000,  # A3_Expected_Annual_Damage
-                1000000,  # A3_Dike_Investment_Costs
+                50000000,  # A3_Expected_Annual_Damage
+                50000000,  # A3_Dike_Investment_Costs
                 1,  # A3_Expected_Number_of_Deaths
-                1000000,  # A4_Expected_Annual_Damage
-                1000000,  # A4_Dike_Investment_Costs
+                50000000,  # A4_Expected_Annual_Damage
+                50000000,  # A4_Dike_Investment_Costs
                 1,  # A4_Expected_Number_of_Deaths
-                1000000,  # A5_Expected_Annual_Damage
-                1000000,  # A5_Dike_Investment_Costs
+                50000000,  # A5_Expected_Annual_Damage
+                50000000,  # A5_Dike_Investment_Costs
                 1,  # A5_Expected_Number_of_Deaths
-                10000000,  # RfR_Total_Costs
-                10000000,  # Expected_Evacuation_Costs
+                500000000,  # RfR_Total_Costs
+                500000000,  # Expected_Evacuation_Costs
                 ]
+
     # save these epsilons
     eps_dict = {"epsilons": epsilons}
     df_eps = pd.DataFrame(eps_dict, index=[*range(17)])
@@ -113,10 +114,10 @@ if __name__ == "__main__":
 
     # set number of functional evaluations
     # note that 100000 nfe is again rather low to ensure proper convergence
-    nfe = 10
+    nfe = 100000
 
     # search for optimized results per scenario
-    number_of_seeds = 1
+    number_of_seeds = 3
     for scenario in scenarios:
         optimize_scenarios(scenario, nfe, model, epsilons, number_of_seeds)
 
