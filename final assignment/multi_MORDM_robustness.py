@@ -90,15 +90,22 @@ if __name__ == "__main__":
         patch = mpatches.Patch(color=clr, label=label)
         legend_handles.append(patch)
 
+    # format figure
+    fig = plt.gcf()
+    fig.set_size_inches(20, 10)
+    fig.subplots_adjust(bottom=0.5, left=0.05, right=0.87, top=0.95)
+    fig.suptitle("Domain Criterion", fontsize=16, fontweight=800, y=0.98)
+    fig.legend(handles=legend_handles, loc='upper right')
+
     # save figure
     plt.savefig("data/robustness_results/threshold_compliance.png")
-    # plot figure
-    #plt.show()
+    # show figure
+    plt.show()
 
     # save figure of legend
-    plt.legend(handles=legend_handles, loc='center')
-    plt.savefig("data/robustness_results/domain_legend.png")
-    plt.show()
+    # plt.legend(handles=legend_handles, loc='center')
+    # plt.savefig("data/robustness_results/domain_legend.png")
+
 
     ### Regret criterion ###
     # setup a dataframe for the outcomes
@@ -121,12 +128,12 @@ if __name__ == "__main__":
     max_regret = max_regret[['A1_Expected_Annual_Damage', 'A1_Dike_Investment_Costs',
                              'A1_Expected_Number_of_Deaths', 'A2_Expected_Annual_Damage',
                              'A2_Dike_Investment_Costs', 'A2_Expected_Number_of_Deaths',
-                             'A3_Expected_Annual_Damage', 'A3_Dike_Investment_Costs']]#,
-                             #'A3_Expected_Number_of_Deaths', 'A4_Expected_Annual_Damage',
-                             # 'A4_Dike_Investment_Costs', 'A4_Expected_Number_of_Deaths',
-                             # 'A5_Expected_Annual_Damage', 'A5_Dike_Investment_Costs',
-                             # 'A5_Expected_Number_of_Deaths', 'RfR_Total_Costs',
-                             # 'Expected_Evacuation_Costs']]
+                             'A3_Expected_Annual_Damage', 'A3_Dike_Investment_Costs',
+                             'A3_Expected_Number_of_Deaths', 'A4_Expected_Annual_Damage',
+                             'A4_Dike_Investment_Costs', 'A4_Expected_Number_of_Deaths',
+                             'A5_Expected_Annual_Damage', 'A5_Dike_Investment_Costs',
+                             'A5_Expected_Number_of_Deaths', 'RfR_Total_Costs',
+                             'Expected_Evacuation_Costs']]
 
     limits = parcoords.get_limits(max_regret)
     paraxes = parcoords.ParallelAxes(max_regret)
@@ -143,19 +150,20 @@ if __name__ == "__main__":
         patch = mpatches.Patch(color=clr, label=label)
         legend_handles.append(patch)
 
+    # format figure
+    fig = plt.gcf()
+    fig.set_size_inches(24, 10)
+    fig.subplots_adjust(bottom=0.5, left=0.05, right=0.87, top=0.95)
+    fig.suptitle("Regret Criterion", fontsize=16, fontweight=800, y=0.98)
+    fig.legend(handles=legend_handles, loc='upper right')
+
     # save figure
     plt.savefig("data/robustness_results/min_max_regret.png")
-    # plot figure
-    #plt.show()
+    # show figure
+    plt.show()
 
     # save figure of legend
-    plt.legend(handles=legend_handles, loc='center')
-    plt.savefig("data/robustness_results/regret_legend.png")
-
-    # let's resize the figure
-    fig = plt.gcf()
-    fig.set_size_inches(12, 6)
-
-    plt.show()
+    # plt.legend(handles=legend_handles, loc='center')
+    # plt.savefig("data/robustness_results/regret_legend.png")
 
 
