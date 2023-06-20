@@ -40,12 +40,12 @@ if __name__ == "__main__":
     thresholds = {'A1_Expected_Annual_Damage': 1000000, 'A1_Dike_Investment_Costs': 5000000,
                   'A1_Expected_Number_of_Deaths': 1, 'A2_Expected_Annual_Damage': 1000000,
                   'A2_Dike_Investment_Costs': 5000000, 'A2_Expected_Number_of_Deaths': 1,
-                  # 'A3_Expected_Annual_Damage': 1000000,
-                  # 'A3_Dike_Investment_Costs': 5000000, 'A3_Expected_Number_of_Deaths': 1,
-                  # 'A4_Expected_Annual_Damage': 1000000,
-                  # 'A4_Dike_Investment_Costs': 5000000, 'A4_Expected_Number_of_Deaths': 1,
-                  # 'A5_Expected_Annual_Damage': 1000000,
-                  # 'A5_Dike_Investment_Costs': 5000000, 'A5_Expected_Number_of_Deaths': 1,
+                   'A3_Expected_Annual_Damage': 1000000,
+                   'A3_Dike_Investment_Costs': 5000000, 'A3_Expected_Number_of_Deaths': 1,
+                   'A4_Expected_Annual_Damage': 1000000,
+                   'A4_Dike_Investment_Costs': 5000000, 'A4_Expected_Number_of_Deaths': 1,
+                   'A5_Expected_Annual_Damage': 1000000,
+                   'A5_Dike_Investment_Costs': 5000000, 'A5_Expected_Number_of_Deaths': 1,
                   'RfR_Total_Costs': 200000000, 'Expected_Evacuation_Costs': 1000000}
 
     # compare experiment results to thresholds
@@ -61,6 +61,15 @@ if __name__ == "__main__":
                 continue
             scores[k] = n / number_of_experiments
         overall_scores[policy] = scores
+
+    # Kijk naar het stukje code hierboven, vanaf lijn 50, waar we het domain criteria toepassen.
+    # Let heel goed op. Uitkomsten, plots kloppen wel. Ligt aan de scores, die zijn genormaliseerd (tussen 0 en 1).
+    # Je moet dan ook niet delen door 1000, maar door 10, als je maar 10 scenarios gebruikt.
+    ##We kunnen die >= vervangen door <= als dat duidelijker is! Bij Kwakkel ging het om maximizen,
+    # bij ons om minimizen.
+    # Die code, en dus plot, geeft aan in hoeveel procent van de gevallen je threshold is overschreden
+    # in dit geval door je policy over de verschillende scenarios. Wij kunnen daar ook percentage niet over
+    # schreden van maken.
 
     # store and show the scores
     overall_scores = pd.DataFrame(overall_scores).T
@@ -112,6 +121,12 @@ if __name__ == "__main__":
     max_regret = max_regret[['A1_Expected_Annual_Damage', 'A1_Dike_Investment_Costs',
                              'A1_Expected_Number_of_Deaths', 'A2_Expected_Annual_Damage',
                              'A2_Dike_Investment_Costs', 'A2_Expected_Number_of_Deaths',
+                             'A3_Expected_Annual_Damage', 'A3_Dike_Investment_Costs',
+                             'A3_Expected_Number_of_Deaths',
+                             'A4_Expected_Annual_Damage', 'A4_Dike_Investment_Costs',
+                             'A4_Expected_Number_of_Deaths',
+                             'A5_Expected_Annual_Damage', 'A5_Dike_Investment_Costs',
+                             'A5_Expected_Number_of_Deaths',
                              'RfR_Total_Costs', 'Expected_Evacuation_Costs']]
 
     limits = parcoords.get_limits(max_regret)

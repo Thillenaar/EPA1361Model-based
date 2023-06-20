@@ -222,13 +222,4 @@ if __name__ == "__main__":
 
 ### End notes ###
 
-    #Kolomnamen die uit reference set komen hebben weer spatie trouwens --> veroorzaakt geen problemen.
 
-    #Kijk naar het stukje code hierboven, vanaf lijn 225, waar we het domain criteria toepassen.
-    #Let heel goed op. Uitkomsten, plots kloppen wel. Ligt aan de scores, die zijn genormaliseerd (tussen 0 en 1).
-    #Je moet dan ook niet delen door 1000, maar door 10, als je maar 10 scenarios gebruikt.
-    ##We kunnen die >= vervangen door <= als dat duidelijker is! Bij Kwakkel ging het om maximizen,
-    #bij ons om minimizen.
-    # Die code, en dus plot, geeft aan in hoeveel procent van de gevallen je threshold is overschreden
-    # in dit geval door je policy over de verschillende scenarios. Wij kunnen daar ook percentage niet over
-    # schreden van maken.
