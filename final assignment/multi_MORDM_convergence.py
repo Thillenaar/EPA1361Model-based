@@ -186,6 +186,8 @@ if __name__ == "__main__":
     # create our custom legend
     artists, labels = zip(*legend_items)
     fig.legend(artists, labels, bbox_to_anchor=(1, 0.9))
+    # set title
+    fig.suptitle("Epsilon Convergence", fontsize=16, fontweight=800, y=0.98)
     # save figure
     plt.savefig("data/robustness_experiments/convergence_figure.png")
     # show figure
@@ -204,7 +206,7 @@ if __name__ == "__main__":
     # test policies on new scenarios
     number_of_experiments = 1000
     with MultiprocessingEvaluator(model) as evaluator:
-        reevaluation_results = evaluator.perform_experiments(number_of_scenarios, policies=policies)
+        reevaluation_results = evaluator.perform_experiments(number_of_experiments, policies=policies)
 
     experiments, outcomes = reevaluation_results
 

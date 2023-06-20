@@ -81,7 +81,7 @@ if __name__ == "__main__":
     # setup legend and colors
     legend_handles = []
     hsv = plt.get_cmap('hsv')
-    colors = hsv(np.linspace(0, 1.0, len(overall_scores)))
+    colors = hsv(np.linspace(0, 1.0, len(overall_scores)+1))
     # process data and set legend info
     for i, (index, row) in enumerate(overall_scores.iterrows()):
         label = f"Policy {str(index)}"
@@ -141,7 +141,7 @@ if __name__ == "__main__":
     # setup legend and colors
     legend_handles = []
     color = plt.get_cmap('hsv')
-    colors = color(np.linspace(0, 1.0, len(max_regret)))
+    colors = color(np.linspace(0, 1.0, len(max_regret)+1))
     # process data and set legend info
     for i, (index, row) in enumerate(max_regret.iterrows()):
         label = f"Policy {str(index)}"
@@ -152,7 +152,7 @@ if __name__ == "__main__":
 
     # format figure
     fig = plt.gcf()
-    fig.set_size_inches(24, 10)
+    fig.set_size_inches(26, 10)
     fig.subplots_adjust(bottom=0.5, left=0.05, right=0.87, top=0.95)
     fig.suptitle("Regret Criterion", fontsize=16, fontweight=800, y=0.98)
     fig.legend(handles=legend_handles, loc='upper right')
