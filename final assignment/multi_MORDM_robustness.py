@@ -1,3 +1,4 @@
+import os
 import matplotlib.pyplot as plt
 import pandas as pd
 from ema_workbench.analysis import parcoords
@@ -14,17 +15,22 @@ def calculate_regret(x):
 
     # we add policy back into our regret dataframe
     # so we know the regret for each policy
-    regret['policy'] = x.policy
+    regret["policy"] = x.policy
     return regret
 
 
 ### Run script ###
 if __name__ == "__main__":
 
+    print("\nMulti-MORDM robustness script is running...\n")
+
     # get computed experiment data
-    df_experiments = pd.read_csv("data/robustness_experiments/experiments.csv")
-    df_outcomes = pd.read_csv("data/robustness_experiments/outcomes.csv")
-    df_number_of_experiments = pd.read_csv("data/robustness_experiments/number_of_experiments.csv")
+    experiments_file_path = os.path.join("data", "robustness_experiments", "experiments.csv")
+    df_experiments = pd.read_csv(experiments_file_path)
+    outcomes_file_path = os.path.join("data", "robustness_experiments", "outcomes.csv")
+    df_outcomes = pd.read_csv(outcomes_file_path)
+    number_file_path = os.path.join("data", "robustness_experiments", "number_of_experiments.csv")
+    df_number_of_experiments = pd.read_csv(number_file_path)
 
     # convert outcomes dataframe to dictionary
     outcomes = {}
@@ -34,8 +40,11 @@ if __name__ == "__main__":
     # get number of experiments
     number_of_experiments = df_number_of_experiments["number of experiments"][0]
 
+    print("Previously created experiments and outcomes are loaded.")
+
 
     ### Domain criterion ###
+    print("\nThe domain criterion is checked:")
     # set thresholds for outcome preferences
     thresholds = {'A1_Expected_Annual_Damage': 1000000, 'A1_Dike_Investment_Costs': 5000000,
                   'A1_Expected_Number_of_Deaths': 1, 'A2_Expected_Annual_Damage': 1000000,
@@ -47,6 +56,8 @@ if __name__ == "__main__":
                    'A5_Expected_Annual_Damage': 1000000,
                    'A5_Dike_Investment_Costs': 5000000, 'A5_Expected_Number_of_Deaths': 1,
                    'RfR_Total_Costs': 200000000, 'Expected_Evacuation_Costs': 1000000}
+
+    print("Domain criterion thresholds are set.")
 
     # compare experiment results to thresholds
     experiments = df_experiments
@@ -71,16 +82,20 @@ if __name__ == "__main__":
     # in dit geval door je policy over de verschillende scenarios. Wij kunnen daar ook percentage niet over
     # schreden van maken.
 
-    # store and show the scores
+    # store the scores
     overall_scores = pd.DataFrame(overall_scores).T
-    overall_scores.to_excel("data/robustness_results/overall_scores.xlsx")
+    scores_file_path = os.path.join("data", "robustness_results", "overall_scores.xlsx")
+    overall_scores.to_excel(scores_file_path)
+
+    print("Domain criterion scores are calculated.")
+    print("Domain criterion plot will be created and shown.")
 
     # plot threshold compliance
     limits = parcoords.get_limits(overall_scores)
     axes = parcoords.ParallelAxes(limits)
     # setup legend and colors
     legend_handles = []
-    hsv = plt.get_cmap('hsv')
+    hsv = plt.get_cmap("hsv")
     colors = hsv(np.linspace(0, 1.0, len(overall_scores)+1))
     # process data and set legend info
     for i, (index, row) in enumerate(overall_scores.iterrows()):
@@ -95,34 +110,36 @@ if __name__ == "__main__":
     fig.set_size_inches(20, 10)
     fig.subplots_adjust(bottom=0.5, left=0.05, right=0.87, top=0.95)
     fig.suptitle("Domain Criterion", fontsize=16, fontweight=800, y=0.98)
-    fig.legend(handles=legend_handles, loc='upper right')
+    fig.legend(handles=legend_handles, loc="upper right")
 
     # save figure
-    plt.savefig("data/robustness_results/threshold_compliance.png")
+    domain_plot_path = os.path.join("data", "robustness_results", "threshold_compliance.png")
+    plt.savefig(domain_plot_path)
     # show figure
     plt.show()
 
     # save figure of legend
-    # plt.legend(handles=legend_handles, loc='center')
+    # plt.legend(handles=legend_handles, loc="center")
     # plt.savefig("data/robustness_results/domain_legend.png")
 
 
     ### Regret criterion ###
+    print("\nThe regret criterion is checked:")
     # setup a dataframe for the outcomes
     # we add scenario and policy as additional columns
     # we need scenario because regret is calculated on a scenario by scenario basis
     # we add policy because we need to get the maximum regret for each policy.
 
     outcomes = pd.DataFrame(outcomes)
-    outcomes['scenario'] = experiments.scenario
-    outcomes['policy'] = experiments.policy
+    outcomes["scenario"] = experiments.scenario
+    outcomes["policy"] = experiments.policy
 
 
     # we want to calculate regret on a scenario by scenario basis
-    regret = outcomes.groupby('scenario', group_keys=False).apply(calculate_regret)
+    regret = outcomes.groupby("scenario", group_keys=False).apply(calculate_regret)
 
     # as last step, we calculate the maximum regret for each policy
-    max_regret = regret.groupby('policy').max()
+    max_regret = regret.groupby("policy").max()
 
     # I reorder the columns
     max_regret = max_regret[['A1_Expected_Annual_Damage', 'A1_Dike_Investment_Costs',
@@ -135,12 +152,16 @@ if __name__ == "__main__":
                              'A5_Expected_Number_of_Deaths', 'RfR_Total_Costs',
                              'Expected_Evacuation_Costs']]
 
+    print("Outcomes of interest for the regret criterion are set.")
+    print("Regret criterion plot will be created and shown.")
+
+    # plot regret criterion
     limits = parcoords.get_limits(max_regret)
     paraxes = parcoords.ParallelAxes(max_regret)
     paraxes.plot(max_regret, lw=1, alpha=0.75)
     # setup legend and colors
     legend_handles = []
-    color = plt.get_cmap('hsv')
+    color = plt.get_cmap("hsv")
     colors = color(np.linspace(0, 1.0, len(max_regret)+1))
     # process data and set legend info
     for i, (index, row) in enumerate(max_regret.iterrows()):
@@ -155,15 +176,20 @@ if __name__ == "__main__":
     fig.set_size_inches(26, 10)
     fig.subplots_adjust(bottom=0.5, left=0.05, right=0.87, top=0.95)
     fig.suptitle("Regret Criterion", fontsize=16, fontweight=800, y=0.98)
-    fig.legend(handles=legend_handles, loc='upper right')
+    fig.legend(handles=legend_handles, loc="upper right")
 
     # save figure
-    plt.savefig("data/robustness_results/min_max_regret.png")
+    regret_plot_path = os.path.join("data", "robustness_results", "min_max_regret.png")
+    plt.savefig(regret_plot_path)
     # show figure
     plt.show()
 
     # save figure of legend
-    # plt.legend(handles=legend_handles, loc='center')
+    # plt.legend(handles=legend_handles, loc="center")
     # plt.savefig("data/robustness_results/regret_legend.png")
 
+    # end of script
+    print("\nMulti-MORDM robustness script is finished.")
+    results_folder_path = os.path.join("data", "robustness_results")
+    print(f"The robustness criterion plots are exported to: {os.path.abspath(results_folder_path)}")
 
