@@ -107,10 +107,10 @@ if __name__ == "__main__":
 
     # format figure
     fig = plt.gcf()
-    fig.set_size_inches(20, 10)
-    fig.subplots_adjust(bottom=0.5, left=0.05, right=0.87, top=0.95)
+    fig.set_size_inches(20, 8)
+    fig.subplots_adjust(bottom=0.5, left=0.03, right=0.75, top=0.95)
     fig.suptitle("Domain Criterion", fontsize=16, fontweight=800, y=0.98)
-    fig.legend(handles=legend_handles, loc="upper right")
+    fig.legend(handles=legend_handles, loc="upper right", fontsize=18)
 
     # save figure
     domain_plot_path = os.path.join("data", "robustness_results", "threshold_compliance.png")
@@ -173,10 +173,10 @@ if __name__ == "__main__":
 
     # format figure
     fig = plt.gcf()
-    fig.set_size_inches(26, 10)
-    fig.subplots_adjust(bottom=0.5, left=0.05, right=0.87, top=0.95)
+    fig.set_size_inches(26, 14)
+    fig.subplots_adjust(bottom=0.5, left=0.05, right=0.95, top=0.95)
     fig.suptitle("Regret Criterion", fontsize=16, fontweight=800, y=0.98)
-    fig.legend(handles=legend_handles, loc="upper right")
+    fig.legend(handles=legend_handles, loc="lower center", fontsize=18)
 
     # save figure
     regret_plot_path = os.path.join("data", "robustness_results", "min_max_regret.png")

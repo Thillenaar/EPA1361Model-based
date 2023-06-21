@@ -115,7 +115,6 @@ def sort_non_dominance(results, epsilons, problem):
 
 # Function to calculate convergence_metrics
 def calculate_convergence_metrics(problem, archives_file):
-    print("HV calculated")
     hv = Hypervolume(minimum=[0, ] * len(model.outcomes), maximum=[12, ] * len(model.outcomes))
     archives = ArchiveLogger.load_archives(archives_file)
     metrics = []
@@ -172,8 +171,8 @@ if __name__ == "__main__":
             metrics["seed"] = seed
             metrics["scenario"] = scenario.name
             metrics["epsilon_progress"] = seed_eps.epsilon_progress
-
             convergence_calculations.append(metrics)
+
     convergence = pd.concat(convergence_calculations, ignore_index=True)
 
     print("Convergence is calculated and will be shown.")
