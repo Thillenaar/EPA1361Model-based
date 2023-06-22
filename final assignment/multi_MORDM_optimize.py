@@ -15,15 +15,16 @@ import pandas as pd
 from our_problem_formulation import get_model_for_problem_formulation
 
 
-#CRITERIA SELECTION BASED ON SUBSPACE PARTITIONING
-
-
+# Function to create a list of scenarios from a dataframe
 def create_scenarios(df_scenario_discovery):
+    # create scenarios list
     scenarios = []
+
+    # loop through dataframe
     for index, row in df_scenario_discovery.iterrows():
-
+        # create values dictionary
         reference_values = {}
-
+        # save dataframe row values to the dictionary
         for i in range(1, 6, 1):
             reference_values[f"A.{i}_Bmax"] = df_scenario_discovery[f"A.{i}_Bmax"][index]
             reference_values[f"A.{i}_Brate"] = df_scenario_discovery[f"A.{i}_Brate"][index]
@@ -34,17 +35,19 @@ def create_scenarios(df_scenario_discovery):
         reference_values["discount rate 2"] = df_scenario_discovery["discount rate 2"][index]
         reference_values["A.0_ID flood wave shape"] = df_scenario_discovery["A.0_ID flood wave shape"][index]
 
+        # create a dictionary with all stored uncertainty values
         scen1 = {}
-
         for key in model.uncertainties:
             scen1.update({key.name: reference_values[key.name]})
 
+        # create scenario object and save in scenario list
         ref_scenario = Scenario(index, **scen1)
         scenarios.append(ref_scenario)
 
     return scenarios
 
 
+# Function to run the optimizer to find policy levers for minimized model outcomes
 def optimize_scenarios(scenario, nfe, model, epsilons, number_of_seeds):
 
     # save number of seeds per scenario
@@ -68,6 +71,8 @@ def optimize_scenarios(scenario, nfe, model, epsilons, number_of_seeds):
                 EpsilonProgress(),
             ]
 
+            # run optimizer
+            # also, specify the seed because of reproducibility
             result, convergence = evaluator.optimize(nfe=nfe, searchover='levers',
                                                         convergence=convergence_metrics,
                                                         epsilons=epsilons,
@@ -101,6 +106,8 @@ if __name__ == "__main__":
     print("Scenarios are loaded.")
 
     # specify epsilons
+    # these values should correspond to the scale of the specific model outcome and
+    # ensure convergence in a reasonable time span
     epsilons = [50000000,  # A1_Expected_Annual_Damage
                 50000000,  # A1_Dike_Investment_Costs
                 1,  # A1_Expected_Number_of_Deaths
@@ -120,18 +127,19 @@ if __name__ == "__main__":
                 500000000,  # Expected_Evacuation_Costs
                 ]
 
-    # save these epsilons
+    # save these epsilons for further multi-scenario MORDM steps
     eps_dict = {"epsilons": epsilons}
     df_eps = pd.DataFrame(eps_dict, index=[*range(17)])
     eps_file_path = os.path.join("data", "optimize_results", "epsilons.csv")
     df_eps.to_csv(eps_file_path)
     print("Epsilons are determined and saved.")
 
-    # set number of functional evaluations
-    # note that 100000 nfe is again rather low to ensure proper convergence
+    # set number of function evaluations
+    # this value needs to be large enough for converged solutions, but also limit computing time
     nfe = 100000
 
     # search for optimized results per scenario
+    # set number of seeds to increase the variance in solution spaces
     number_of_seeds = 3
     print(f"Optimization will run for {len(scenarios)} scenarios, {number_of_seeds} seeds and {nfe} NFEs:\n")
     for scenario in scenarios:

@@ -104,7 +104,7 @@ def retrieve_results(folder_path):
     return results_per_scenario, convergences_per_scenario, number_of_scenarios
 
 
-# Function to merge results using the non dominance sort
+# Function to filter results using the non dominance sort
 def sort_non_dominance(results, epsilons, problem):
 
     # retrieve reference set from the non dominance sort function
@@ -152,6 +152,13 @@ if __name__ == "__main__":
     optimize_folder_path = os.path.join("data", "optimize_results")
     results_per_scenario, convergences_per_scenario, number_of_scenarios = retrieve_results(optimize_folder_path)
     print("Optimized results are loaded.")
+
+    # because of previous errors in the rebuild_platypus_population() from ema_workbench optimization.py
+    # we wanted to stay as close to the code in assignment 10 (to locate the cause of the error) for the
+    # optimization (in multi_MORDM_optimize.py) and the convergence plot in this script.
+    # to create the same loop, the list of results is split per scenario and then processed per scenario
+    # in the following loop, which creates a tuple of the reference_set and the corresponding convergence.
+    # like in the assignment.
 
     # search for non dominance in results per scenario
     dominant_results = []

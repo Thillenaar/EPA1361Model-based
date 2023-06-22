@@ -46,6 +46,7 @@ if __name__ == "__main__":
     ### Domain criterion ###
     print("\nThe domain criterion is checked:")
     # set thresholds for outcome preferences
+    # threshold values should be set regarding the scale of the outcome
     thresholds = {'A1_Expected_Annual_Damage': 10000000,
                   'A1_Dike_Investment_Costs': 20000000, 'A1_Expected_Number_of_Deaths': 1,
                   'A2_Expected_Annual_Damage': 10000000,
@@ -68,21 +69,15 @@ if __name__ == "__main__":
         scores = {}
         for k, v in outcomes.items():
             try:
+                # because we want to minimize the outcomes, <= is used to assess whether the value is
+                # under the given threshold
                 n = np.sum(v[logical] <= thresholds[k])
             except KeyError:
                 continue
             scores[k] = n / number_of_experiments
         overall_scores[policy] = scores
 
-    # Kijk naar het stukje code hierboven, vanaf lijn 50, waar we het domain criteria toepassen.
-    # Let heel goed op. Uitkomsten, plots kloppen wel. Ligt aan de scores, die zijn genormaliseerd (tussen 0 en 1).
-    # Je moet dan ook niet delen door 1000, maar door 10, als je maar 10 scenarios gebruikt.
-    ##We kunnen die >= vervangen door <= als dat duidelijker is! Bij Kwakkel ging het om maximizen,
-    # bij ons om minimizen.
-    # Die code, en dus plot, geeft aan in hoeveel procent van de gevallen je threshold is overschreden
-    # in dit geval door je policy over de verschillende scenarios. Wij kunnen daar ook percentage niet over
-    # schreden van maken.
-
+    # the calculated scores indicate in how many percent of the new scenarios, the outcomes stay under their threshold
     # store the scores
     overall_scores = pd.DataFrame(overall_scores).T
     scores_file_path = os.path.join("data", "robustness_results", "overall_scores.xlsx")
@@ -93,7 +88,7 @@ if __name__ == "__main__":
 
     # plot threshold compliance
     limits = parcoords.get_limits(overall_scores)
-    axes = parcoords.ParallelAxes(limits)
+    paraxes = parcoords.ParallelAxes(limits)
     # setup legend and colors
     legend_handles = []
     hsv = plt.get_cmap("hsv")
@@ -102,7 +97,7 @@ if __name__ == "__main__":
     for i, (index, row) in enumerate(overall_scores.iterrows()):
         label = f"Policy {str(index)}"
         clr = colors[i]
-        axes.plot(row.to_frame().T, color=clr, label=label)
+        paraxes.plot(row.to_frame().T, color=clr, label=label)
         patch = mpatches.Patch(color=clr, label=label)
         legend_handles.append(patch)
 
@@ -119,10 +114,6 @@ if __name__ == "__main__":
     # show figure
     plt.show()
 
-    # save figure of legend
-    # plt.legend(handles=legend_handles, loc="center")
-    # plt.savefig("data/robustness_results/domain_legend.png")
-
 
     ### Regret criterion ###
     print("\nThe regret criterion is checked:")
@@ -131,18 +122,18 @@ if __name__ == "__main__":
     # we need scenario because regret is calculated on a scenario by scenario basis
     # we add policy because we need to get the maximum regret for each policy.
 
+    # add scenario and policy info to the experiment outcomes
     outcomes = pd.DataFrame(outcomes)
     outcomes["scenario"] = experiments.scenario
     outcomes["policy"] = experiments.policy
 
-
-    # we want to calculate regret on a scenario by scenario basis
+    # calculate regret scenario by scenario
     regret = outcomes.groupby("scenario", group_keys=False).apply(calculate_regret)
 
-    # as last step, we calculate the maximum regret for each policy
+    # for all policies, calculate max regret
     max_regret = regret.groupby("policy").max()
 
-    # I reorder the columns
+    # reorder columns of max regret
     max_regret = max_regret[['A1_Expected_Annual_Damage', 'A1_Dike_Investment_Costs',
                              'A1_Expected_Number_of_Deaths', 'A2_Expected_Annual_Damage',
                              'A2_Dike_Investment_Costs', 'A2_Expected_Number_of_Deaths',
@@ -188,10 +179,6 @@ if __name__ == "__main__":
     plt.savefig(regret_plot_path)
     # show figure
     plt.show()
-
-    # save figure of legend
-    # plt.legend(handles=legend_handles, loc="center")
-    # plt.savefig("data/robustness_results/regret_legend.png")
 
     # end of script
     print("\nMulti-MORDM robustness script is finished.")
