@@ -46,16 +46,17 @@ if __name__ == "__main__":
     ### Domain criterion ###
     print("\nThe domain criterion is checked:")
     # set thresholds for outcome preferences
-    thresholds = {'A1_Expected_Annual_Damage': 1000000, 'A1_Dike_Investment_Costs': 5000000,
-                  'A1_Expected_Number_of_Deaths': 1, 'A2_Expected_Annual_Damage': 1000000,
-                  'A2_Dike_Investment_Costs': 5000000, 'A2_Expected_Number_of_Deaths': 1,
-                   'A3_Expected_Annual_Damage': 1000000,
-                   'A3_Dike_Investment_Costs': 5000000, 'A3_Expected_Number_of_Deaths': 1,
-                   'A4_Expected_Annual_Damage': 1000000,
-                   'A4_Dike_Investment_Costs': 5000000, 'A4_Expected_Number_of_Deaths': 1,
-                   'A5_Expected_Annual_Damage': 1000000,
-                   'A5_Dike_Investment_Costs': 5000000, 'A5_Expected_Number_of_Deaths': 1,
-                   'RfR_Total_Costs': 200000000, 'Expected_Evacuation_Costs': 1000000}
+    thresholds = {'A1_Expected_Annual_Damage': 10000000,
+                  'A1_Dike_Investment_Costs': 20000000, 'A1_Expected_Number_of_Deaths': 1,
+                  'A2_Expected_Annual_Damage': 10000000,
+                  'A2_Dike_Investment_Costs': 20000000, 'A2_Expected_Number_of_Deaths': 1,
+                   'A3_Expected_Annual_Damage': 10000000,
+                   'A3_Dike_Investment_Costs': 20000000, 'A3_Expected_Number_of_Deaths': 1,
+                   'A4_Expected_Annual_Damage': 10000000,
+                   'A4_Dike_Investment_Costs': 20000000, 'A4_Expected_Number_of_Deaths': 1,
+                   'A5_Expected_Annual_Damage': 10000000,
+                   'A5_Dike_Investment_Costs': 20000000, 'A5_Expected_Number_of_Deaths': 1,
+                   'RfR_Total_Costs': 100000000, 'Expected_Evacuation_Costs': 1000000}
 
     print("Domain criterion thresholds are set.")
 
@@ -152,6 +153,10 @@ if __name__ == "__main__":
                              'A5_Expected_Number_of_Deaths', 'RfR_Total_Costs',
                              'Expected_Evacuation_Costs']]
 
+    # save max regret file
+    regret_file_path = os.path.join("data", "robustness_results", "regret_values.xlsx")
+    max_regret.to_excel(regret_file_path)
+
     print("Outcomes of interest for the regret criterion are set.")
     print("Regret criterion plot will be created and shown.")
 
@@ -173,7 +178,7 @@ if __name__ == "__main__":
 
     # format figure
     fig = plt.gcf()
-    fig.set_size_inches(26, 14)
+    fig.set_size_inches(26, 21)
     fig.subplots_adjust(bottom=0.5, left=0.05, right=0.95, top=0.95)
     fig.suptitle("Regret Criterion", fontsize=16, fontweight=800, y=0.98)
     fig.legend(handles=legend_handles, loc="lower center", fontsize=18)
