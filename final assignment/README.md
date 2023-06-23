@@ -2,6 +2,15 @@
 Main files to inspect in order to understand model are [dike_model_function.py](dike_model_function.py), 
 [problem_formulation.py](problem_formulation.py) and [dike_model_simulation.py](dike_model_simulation.py).
 
+The files starting with 'funs_(...)' represent technical representations of aspects the system. 
+
+The [our_problem_formulation.py](our_problem_formulation.py) file is created and used to scope and frame the problem
+in stead of the already provided options in [problem_formulation.py](problem_formulation.py).
+
+The outcome files of the model are represented by the python file names starting with:
+multi_MORDM_(...)'. In these files, multi MORDM is used to find interesting policies to recommend
+to Dike Ring 1 and 2.
+
 ## Uncertainties
 The model includes the following uncertainties:
 1. Breach max (Bmax): real number in range [30, 350], in meters

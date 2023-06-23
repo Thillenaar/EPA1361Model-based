@@ -2,8 +2,6 @@
 
 ## Model-based Decision-making - TU Delft EPA1361 (2022/23 Q4)
 
-Last updated: 2023 - 06 - 24
-
 Created by: Project group 14 (Dike Ring 1 & 2)
 
 
@@ -12,7 +10,7 @@ Created by: Project group 14 (Dike Ring 1 & 2)
 |  Arnoldus, Micha   |    4557662     |
 | Engelhard, Vincent |    4716515     |
 |   Hillenaar, Tom   |    4861973     |
-|    Rous, Thomas    |    ???????     |
+|    Rous, Thomas    |    4963946     |
 |   Poland, Jesse    |    5654580     |
 |  Treurniet, Marte  |    5145864     |
 
@@ -20,20 +18,14 @@ Created by: Project group 14 (Dike Ring 1 & 2)
 ## Introduction
 This README file is created to explain the folder structure regarding the IJssel case.
 
-GitHub link: ...
-
 ## How to start
-Provided code...
-EMA Workbench...
-Our codes for optimization, experiments and robustness.
+The project is based on the EMA Workbench from Jan Kwakkel. Install the workbench.
+This project is partly based on already provided Python files.
+Own codes are constructed for problem formulation, optimization, experiments and robustness.
 
-# Environment
-Should be similar to a requirements.txt from our environment.
+A detailed explanation is described in the README file in the final assignment.
 
 ## Folder structure
-! Check whether the .idea folder is necessary? ! &
-! Is main.py necessary? !
-These are still in the GitHub
 
 ```
 ├── `README.md`         <- this README file.
